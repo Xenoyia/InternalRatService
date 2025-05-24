@@ -42,22 +42,6 @@
       <HintPath>../Libraries/BepInEx.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="spine-unity">
-      <HintPath>../Libraries/spine-unity.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="spine-csharp">
-      <HintPath>../Libraries/spine-csharp.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>../Libraries/UnityEngine.ImageConversionModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>../Libraries/UnityEngine.UI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
   </ItemGroup>
 
 </Project>

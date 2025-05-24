@@ -7,7 +7,7 @@ using BepInEx.Logging;
 
 namespace InternalRatService
 {
-    [BepInPlugin("internalratservice", "Internal Rat Service", "1.0.1")]
+    [BepInPlugin("internalratservice", "Internal Rat Service", "1.0.2")]
     public class Plugin : BaseUnityPlugin
     {
         private static bool _subscribed = false;
@@ -36,7 +36,7 @@ namespace InternalRatService
             }
         }
 
-        private static void CollectAllTaxes(ManualLogSource logger)
+        private static void CollectAll(ManualLogSource logger)
         {
             try
             {
@@ -46,36 +46,35 @@ namespace InternalRatService
                 var listCitizenField = tUnitMgr.GetType().GetField("List_Citizen", BindingFlags.Instance | BindingFlags.Public);
                 var citizens = listCitizenField.GetValue(tUnitMgr) as System.Collections.IEnumerable;
                 var policyUI = gameMgrType.GetField("_PolicyUI", BindingFlags.Instance | BindingFlags.Public).GetValue(gameMgr);
-                var taxExecMethod = policyUI.GetType().GetMethod("TaxExecution", BindingFlags.Instance | BindingFlags.Public);
+                var collectMethod = policyUI.GetType().GetMethod("TaxExecution", BindingFlags.Instance | BindingFlags.Public);
 
-                float totalTax = 0f;
+                float totalCollections = 0f;
                 int count = 0;
                 foreach (var citizen in citizens)
                 {
-                    float taxed = (float)taxExecMethod.Invoke(policyUI, new object[] { citizen, false });
-                    totalTax += taxed;
+                    float collected = (float)collectMethod.Invoke(policyUI, new object[] { citizen, false });
+                    totalCollections += collected;
                     count++;
                 }
-                if (totalTax > 0f)
+                if (totalCollections > 0f)
                 {
-                    logger.LogInfo($"[InternalRatService] Tax collection complete. {count} citizens processed. Total: {totalTax}");
+                    logger.LogInfo($"[InternalRatService] Collection complete. {count} citizens processed. Total: {totalCollections}");
 
                     var npcAlarmUI = gameMgrType.GetField("_NpcAlarmUI", BindingFlags.Instance | BindingFlags.Public).GetValue(gameMgr);
                     var npcAlarmType = npcAlarmUI.GetType();
                     var alarmStateType = npcAlarmType.GetNestedType("AlarmState");
                     var alarmStateBasic = Enum.Parse(alarmStateType, "Basic");
-                    string message = $"<sprite name=FS_Tax> The IRS has collected <color=#FFE331>{totalTax:N0}</color> Pia from our ratizens!";
+                    string message = $"<sprite name=FS_Tax> The Internal Rat Service has collected <color=#FFE331>{totalCollections:N0}</color> from our ratizens!";
                     npcAlarmType.GetMethod("NpcAlarm_Call", new[] { typeof(string), typeof(bool), alarmStateType, typeof(int) })
                         .Invoke(npcAlarmUI, new object[] { message, false, alarmStateBasic, 0 });
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError($"[InternalRatService] Error during tax collection: {ex}");
+                logger.LogError($"[InternalRatService] Error during collection: {ex}");
             }
         }
 
-        // Add a Harmony postfix patch for SystemMgr.ProsHappyRefresh to collect taxes once per day
         [HarmonyPatch]
         public static class SystemMgrProsHappyRefreshPatch
         {
@@ -98,7 +97,7 @@ namespace InternalRatService
                 if (currentDay != _lastProcessedDay)
                 {
                     _lastProcessedDay = currentDay;
-                    CollectAllTaxes(BepInEx.Logging.Logger.CreateLogSource("InternalRatService"));
+                    CollectAll(BepInEx.Logging.Logger.CreateLogSource("InternalRatService"));
                 }
             }
         }

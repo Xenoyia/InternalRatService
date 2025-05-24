@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework> <!-- More compatible than net46 -->
-    <AssemblyName>InternalRatService</AssemblyName>
-    <Product>Internal Rat Service</Product>
-    <Version>1.0.1</Version>
+    <AssemblyName>TaxAssistant</AssemblyName>
+    <Product>Tax Assistant</Product>
+    <Version>1.0.4</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
-    <RootNamespace>InternalRatService</RootNamespace>
+    <RootNamespace>TaxAssistant</RootNamespace>
     <RestoreSources>
       https://api.nuget.org/v3/index.json;
       https://nuget.bepinex.dev/v3/index.json

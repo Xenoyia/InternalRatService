@@ -5,38 +5,21 @@ using System.Reflection;
 using UnityEngine;
 using BepInEx.Logging;
 
-namespace InternalRatService
+namespace TaxAssistant
 {
-    [BepInPlugin("internalratservice", "Internal Rat Service", "1.0.2")]
+    [BepInPlugin("taxassistant", "Tax Assistant", "1.0.4")]
     public class Plugin : BaseUnityPlugin
     {
-        private static bool _subscribed = false;
+        private static ManualLogSource StaticLogger;
+
         private void Awake()
         {
-            Logger.LogInfo($"Internal Rat Service by Xenoyia loaded.");
+            StaticLogger = Logger;
+            Logger.LogInfo($"Tax Assistant by Xenoyia loaded.");
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-            SubscribeToNewDay();
         }
 
-        private void SubscribeToNewDay()
-        {
-            if (_subscribed) return;
-            _subscribed = true;
-            var indStatsMgrType = AccessTools.TypeByName("Utility.Data.IndividualStatisticsManager");
-            if (indStatsMgrType == null)
-            {
-                Logger.LogError("Could not find IndividualStatisticsManager type.");
-                return;
-            }
-            var evt = indStatsMgrType.GetEvent("PrevNextDayEvent", BindingFlags.Static | BindingFlags.Public);
-            if (evt == null)
-            {
-                Logger.LogError("Could not find PrevNextDayEvent event.");
-                return;
-            }
-        }
-
-        private static void CollectAll(ManualLogSource logger)
+        private static void DoCollection()
         {
             try
             {
@@ -58,20 +41,20 @@ namespace InternalRatService
                 }
                 if (totalCollections > 0f)
                 {
-                    logger.LogInfo($"[InternalRatService] Collection complete. {count} citizens processed. Total: {totalCollections}");
+                    StaticLogger.LogInfo($"[Tax Assistant] Collection complete. {count} citizens processed. Total: {totalCollections}");
 
                     var npcAlarmUI = gameMgrType.GetField("_NpcAlarmUI", BindingFlags.Instance | BindingFlags.Public).GetValue(gameMgr);
                     var npcAlarmType = npcAlarmUI.GetType();
                     var alarmStateType = npcAlarmType.GetNestedType("AlarmState");
                     var alarmStateBasic = Enum.Parse(alarmStateType, "Basic");
-                    string message = $"<sprite name=FS_Tax> The Internal Rat Service has collected <color=#FFE331>{totalCollections:N0}</color> from our ratizens!";
+                    string message = $"<sprite name=FS_Tax> The Tax Assistant has collected <color=#FFE331>{totalCollections:N0}</color> from our ratizens!";
                     npcAlarmType.GetMethod("NpcAlarm_Call", new[] { typeof(string), typeof(bool), alarmStateType, typeof(int) })
                         .Invoke(npcAlarmUI, new object[] { message, false, alarmStateBasic, 0 });
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError($"[InternalRatService] Error during collection: {ex}");
+                StaticLogger.LogError($"[Tax Assistant] Error during collection: {ex}");
             }
         }
 
@@ -97,7 +80,8 @@ namespace InternalRatService
                 if (currentDay != _lastProcessedDay)
                 {
                     _lastProcessedDay = currentDay;
-                    CollectAll(BepInEx.Logging.Logger.CreateLogSource("InternalRatService"));
+                    // Call DoCollection directly
+                    DoCollection();
                 }
             }
         }
